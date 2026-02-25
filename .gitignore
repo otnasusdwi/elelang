@@ -1,0 +1,54 @@
+# Secrets and local env
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Dependencies
+node_modules/
+**/node_modules/
+vendor/
+**/vendor/
+
+# Build artifacts
+dist/
+build/
+coverage/
+.vite/
+**/dist/
+**/build/
+**/coverage/
+**/.vite/
+
+# Logs and runtime temp
+*.log
+*.pid
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Laravel / PHP cache and generated files
+.phpunit.cache
+.phpunit.result.cache
+**/.phpunit.cache
+**/.phpunit.result.cache
+**/storage/*.key
+**/public/storage
+**/public/hot
+**/public/build
+**/bootstrap/cache/*.php
+
+# Docker local override
+docker-compose.override.yml
+
+# IDE / Editor / OS
+.idea/
+.fleet/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/*
+!.vscode/extensions.json

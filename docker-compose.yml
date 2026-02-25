@@ -1,0 +1,122 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: elelang-db
+    environment:
+      MYSQL_DATABASE: elelang
+      MYSQL_USER: elelang
+      MYSQL_PASSWORD: elelangpass
+      MYSQL_ROOT_PASSWORD: rootpass
+    ports:
+      - "3307:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-prootpass"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7
+    container_name: elelang-redis
+    ports:
+      - "6379:6379"
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: elelang-api
+    ports:
+      - "8080:80"
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: elelang
+      DB_USERNAME: elelang
+      DB_PASSWORD: elelangpass
+      CACHE_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      REDIS_HOST: redis
+      BROADCAST_DRIVER: redis
+      # sesuaikan kalau kamu pakai laravel reverb/websockets
+    volumes:
+      - ./apps/api:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  queue:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: elelang-queue
+    command: php artisan queue:work --tries=3 --timeout=90
+    environment:
+      APP_ENV: local
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: elelang
+      DB_USERNAME: elelang
+      DB_PASSWORD: elelangpass
+      QUEUE_CONNECTION: redis
+      REDIS_HOST: redis
+    volumes:
+      - ./apps/api:/var/www/html
+    depends_on:
+      - api
+      - redis
+      - db
+
+  realtime:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: elelang-realtime
+    # pilih salah satu command sesuai pilihan realtime kamu:
+    # 1) Laravel Reverb:
+    command: php artisan reverb:start --host=0.0.0.0 --port=6001
+    ports:
+      - "6001:6001"
+    environment:
+      APP_ENV: local
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: elelang
+      DB_USERNAME: elelang
+      DB_PASSWORD: elelangpass
+      REDIS_HOST: redis
+    volumes:
+      - ./apps/api:/var/www/html
+    depends_on:
+      - api
+      - redis
+      - db
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: elelang-web
+    ports:
+      - "3000:3000"
+    environment:
+      # kalau pakai Vite:
+      VITE_API_BASE: "http://localhost:8080"
+      VITE_WS_URL: "ws://localhost:6001"
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+    depends_on:
+      - api
+
+volumes:
+  dbdata:
