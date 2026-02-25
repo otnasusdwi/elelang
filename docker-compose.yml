@@ -23,6 +23,21 @@ services:
     ports:
       - "6379:6379"
 
+  # ✅ NEW: soketi (WebSocket server - Pusher protocol)
+  soketi:
+    image: quay.io/soketi/soketi:1.6-16-debian
+    container_name: elelang-soketi
+    environment:
+      SOKETI_DEBUG: "1"
+      SOKETI_DEFAULT_APP_ID: "elelang"
+      SOKETI_DEFAULT_APP_KEY: "elelang_key"
+      SOKETI_DEFAULT_APP_SECRET: "elelang_secret"
+    ports:
+      - "6001:6001"
+      - "9601:9601" # optional metrics
+    depends_on:
+      - redis
+
   api:
     build:
       context: ./apps/api
@@ -33,23 +48,36 @@ services:
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
+
       DB_CONNECTION: mysql
       DB_HOST: db
       DB_PORT: 3306
       DB_DATABASE: elelang
       DB_USERNAME: elelang
       DB_PASSWORD: elelangpass
+
       CACHE_DRIVER: redis
       QUEUE_CONNECTION: redis
       REDIS_HOST: redis
-      BROADCAST_DRIVER: redis
-      # sesuaikan kalau kamu pakai laravel reverb/websockets
+
+      # ✅ CHANGE: broadcasting pakai pusher (ke soketi)
+      BROADCAST_DRIVER: pusher
+      PUSHER_APP_ID: elelang
+      PUSHER_APP_KEY: elelang_key
+      PUSHER_APP_SECRET: elelang_secret
+      PUSHER_HOST: soketi
+      PUSHER_PORT: 6001
+      PUSHER_SCHEME: http
+      PUSHER_APP_CLUSTER: mt1
+
     volumes:
       - ./apps/api:/var/www/html
     depends_on:
       db:
         condition: service_healthy
       redis:
+        condition: service_started
+      soketi:
         condition: service_started
 
   queue:
@@ -60,46 +88,34 @@ services:
     command: php artisan queue:work --tries=3 --timeout=90
     environment:
       APP_ENV: local
+
       DB_CONNECTION: mysql
       DB_HOST: db
       DB_PORT: 3306
       DB_DATABASE: elelang
       DB_USERNAME: elelang
       DB_PASSWORD: elelangpass
+
       QUEUE_CONNECTION: redis
       REDIS_HOST: redis
-    volumes:
-      - ./apps/api:/var/www/html
-    depends_on:
-      - api
-      - redis
-      - db
 
-  realtime:
-    build:
-      context: ./apps/api
-      dockerfile: Dockerfile
-    container_name: elelang-realtime
-    # pilih salah satu command sesuai pilihan realtime kamu:
-    # 1) Laravel Reverb:
-    command: php artisan reverb:start --host=0.0.0.0 --port=6001
-    ports:
-      - "6001:6001"
-    environment:
-      APP_ENV: local
-      DB_CONNECTION: mysql
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_DATABASE: elelang
-      DB_USERNAME: elelang
-      DB_PASSWORD: elelangpass
-      REDIS_HOST: redis
+      # ✅ biar event queued juga konsisten (opsional)
+      BROADCAST_DRIVER: pusher
+      PUSHER_APP_ID: elelang
+      PUSHER_APP_KEY: elelang_key
+      PUSHER_APP_SECRET: elelang_secret
+      PUSHER_HOST: soketi
+      PUSHER_PORT: 6001
+      PUSHER_SCHEME: http
+      PUSHER_APP_CLUSTER: mt1
+
     volumes:
       - ./apps/api:/var/www/html
     depends_on:
       - api
       - redis
       - db
+      - soketi
 
   web:
     build:
@@ -109,9 +125,13 @@ services:
     ports:
       - "3000:3000"
     environment:
-      # kalau pakai Vite:
       VITE_API_BASE: "http://localhost:8080"
-      VITE_WS_URL: "ws://localhost:6001"
+
+      # ✅ untuk laravel-echo + pusher-js di React
+      VITE_PUSHER_KEY: "elelang_key"
+      VITE_WS_HOST: "localhost"
+      VITE_WS_PORT: "6001"
+
     volumes:
       - ./apps/web:/app
       - /app/node_modules
