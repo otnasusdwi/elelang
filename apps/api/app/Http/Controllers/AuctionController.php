@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Auction;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
+use App\Support\PaginatesApi;
 
 class AuctionController extends Controller
 {
@@ -14,26 +14,36 @@ class AuctionController extends Controller
      *   tags={"Auctions"},
      *   summary="Public list auctions (filter by status)",
      *   @OA\Parameter(name="status", in="query", required=false, @OA\Schema(type="string", enum={"scheduled","live","ended"})),
+     *   @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer", example=1), description="Page number (Laravel paginator)"),
+     *   @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer", example=20), description="Items per page. Max is capped by server."),
      *   @OA\Response(response=200, description="OK")
      * )
      */
+    use PaginatesApi;
     public function index(Request $request)
     {
         $status = $request->query('status');
-        $now = Carbon::now();
+        $now = now('UTC');
 
         $q = Auction::query()->with('commodity.media');
 
-        // status computed based on time for MVP
+        // Keep list filters aligned with bidding rules:
+        // live/scheduled should exclude manually ended/cancelled auctions.
         if ($status === 'scheduled') {
-            $q->where('start_at', '>', $now);
+            $q->where('start_at', '>', $now)
+                ->whereNotIn('status', ['ended', 'cancelled']);
         } elseif ($status === 'live') {
-            $q->where('start_at', '<=', $now)->where('end_at', '>', $now);
+            $q->where('start_at', '<=', $now)
+                ->where('end_at', '>', $now)
+                ->whereNotIn('status', ['ended', 'cancelled']);
         } elseif ($status === 'ended') {
-            $q->where('end_at', '<=', $now);
+            $q->where(function ($sub) use ($now) {
+                $sub->where('end_at', '<=', $now)
+                    ->orWhereIn('status', ['ended', 'cancelled']);
+            });
         }
 
-        $items = $q->orderByDesc('id')->paginate(20);
+        $items = $q->orderByDesc('id')->paginate($this->perPage($request, 20, 50));
 
         return response()->json($items);
     }

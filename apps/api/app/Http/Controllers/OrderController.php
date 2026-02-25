@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Order\UpdateOrderStatusRequest;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use App\Support\PaginatesApi;
 
 class OrderController extends Controller
 {
@@ -14,10 +15,13 @@ class OrderController extends Controller
      *   tags={"Orders"},
      *   summary="List orders (buyer sees own, seller sees own)",
      *   security={{"sanctum":{}}},
+     *   @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer", example=1), description="Page number (Laravel paginator)"),
+     *   @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer", example=20), description="Items per page. Max is capped by server."),
      *   @OA\Response(response=200, description="OK"),
      *   @OA\Response(response=401, description="Unauthenticated")
      * )
      */
+    use PaginatesApi;
     public function index(Request $request)
     {
         $user = $request->user();
@@ -34,7 +38,7 @@ class OrderController extends Controller
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
-        return response()->json($q->orderByDesc('id')->paginate(20));
+        return response()->json($q->orderByDesc('id')->paginate($this->perPage($request, 20, 50)));
     }
 
     /**

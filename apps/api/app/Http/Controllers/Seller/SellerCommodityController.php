@@ -9,6 +9,7 @@ use App\Models\Commodity;
 use App\Models\CommodityMedia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Support\PaginatesApi;
 
 class SellerCommodityController extends Controller
 {
@@ -18,11 +19,14 @@ class SellerCommodityController extends Controller
      *   tags={"Seller - Commodities"},
      *   summary="List commodities milik seller",
      *   security={{"sanctum":{}}},
+     *   @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer", example=1), description="Page number (Laravel paginator)"),
+     *   @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer", example=20), description="Items per page. Max is capped by server."),
      *   @OA\Response(response=200, description="OK"),
      *   @OA\Response(response=401, description="Unauthenticated"),
      *   @OA\Response(response=403, description="Forbidden")
      * )
      */
+    use PaginatesApi;
     public function index(Request $request)
     {
         $sellerId = $request->user()->id;
@@ -31,7 +35,7 @@ class SellerCommodityController extends Controller
             ->with('media')
             ->where('seller_id', $sellerId)
             ->orderByDesc('id')
-            ->paginate(20);
+            ->paginate($this->perPage($request, 20, 50));
 
         return response()->json($items);
     }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auction\AdminStoreAuctionRequest;
 use App\Http\Requests\Auction\AdminUpdateAuctionRequest;
 use App\Models\Auction;
+use Illuminate\Support\Carbon;
 
 class AdminAuctionController extends Controller
 {
@@ -32,11 +33,21 @@ class AdminAuctionController extends Controller
      */
     public function store(AdminStoreAuctionRequest $request)
     {
+        $tz = $request->input('timezone', 'UTC');
+
+        // Parse as timezone provided, store as UTC
+        $startUtc = Carbon::parse($request->input('start_at'), $tz)->utc();
+        $endUtc = Carbon::parse($request->input('end_at'), $tz)->utc();
+
+        if ($endUtc->lessThanOrEqualTo($startUtc)) {
+            return response()->json(['message' => 'end_at must be after start_at'], 422);
+        }
+
         $auction = Auction::query()->create([
             'commodity_id' => $request->integer('commodity_id'),
-            'start_at' => $request->input('start_at'),
-            'end_at' => $request->input('end_at'),
-            'timezone' => $request->input('timezone'),
+            'start_at' => $startUtc,
+            'end_at' => $endUtc,
+            'timezone' => $request->input('timezone'), // simpan timezone referensi input admin
             'status' => 'scheduled',
             'anti_sniping_seconds' => $request->input('anti_sniping_seconds', 10),
             'extend_minutes' => $request->input('extend_minutes', 10),
@@ -64,8 +75,22 @@ class AdminAuctionController extends Controller
     {
         $data = $request->validated();
 
-        // Optional: kalau dua-duanya ada, enforce end_at after start_at
-        if (isset($data['start_at'], $data['end_at']) && strtotime($data['end_at']) <= strtotime($data['start_at'])) {
+        // timezone basis: request timezone > existing auction timezone > UTC
+        $tz = $data['timezone'] ?? $auction->timezone ?? 'UTC';
+
+        // Convert incoming start/end to UTC if provided
+        if (array_key_exists('start_at', $data)) {
+            $data['start_at'] = Carbon::parse($data['start_at'], $tz)->utc();
+        }
+        if (array_key_exists('end_at', $data)) {
+            $data['end_at'] = Carbon::parse($data['end_at'], $tz)->utc();
+        }
+
+        // Validate ordering after conversion (use updated values if present)
+        $start = $data['start_at'] ?? $auction->start_at;
+        $end = $data['end_at'] ?? $auction->end_at;
+
+        if ($end->lessThanOrEqualTo($start)) {
             return response()->json(['message' => 'end_at must be after start_at'], 422);
         }
 

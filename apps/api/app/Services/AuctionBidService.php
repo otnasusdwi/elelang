@@ -25,7 +25,7 @@ class AuctionBidService
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $now = Carbon::now();
+            $now = now('UTC');
 
             // Validate auction time window (computed "live")
             if ($now->lt($auction->start_at)) {

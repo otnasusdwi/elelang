@@ -6,9 +6,11 @@ use App\Models\Auction;
 use App\Models\Bid;
 use App\Models\Commodity;
 use App\Models\CommodityMedia;
+use App\Models\EscrowLedger;
 use App\Models\HandoverProof;
 use App\Models\Logistics;
 use App\Models\Order;
+use App\Models\Review;
 use App\Models\User;
 use App\Services\AuctionSettlementService;
 use Illuminate\Database\Seeder;
@@ -66,6 +68,8 @@ class DevSeeder extends Seeder
         // ---------- Clear old dev data ----------
         HandoverProof::query()->delete();
         Logistics::query()->delete();
+        Review::query()->delete();
+        EscrowLedger::query()->delete();
         Order::query()->delete();
         Bid::query()->delete();
         Auction::query()->delete();
@@ -135,7 +139,7 @@ class DevSeeder extends Seeder
         $live1 = Auction::query()->create([
             'commodity_id' => $commodities[2]->id,
             'start_at' => $now->copy()->subMinutes(5),
-            'end_at' => $now->copy()->addHours(2), // keep long for web demo
+            'end_at' => $now->copy()->addHours(2),
             'status' => 'live',
             'timezone' => 'Asia/Makassar',
             'anti_sniping_seconds' => 10,
@@ -146,7 +150,7 @@ class DevSeeder extends Seeder
         $live2 = Auction::query()->create([
             'commodity_id' => $commodities[3]->id,
             'start_at' => $now->copy()->subMinutes(2),
-            'end_at' => $now->copy()->addSeconds(45), // near end for anti-sniping
+            'end_at' => $now->copy()->addSeconds(45),
             'status' => 'live',
             'timezone' => 'Asia/Makassar',
             'anti_sniping_seconds' => 10,
@@ -192,7 +196,7 @@ class DevSeeder extends Seeder
             $amount2 += 30000;
         }
 
-        // ---------- Auto-create 1 Order by closing live1 + seed logistics & proof ----------
+        // ---------- Auto-create 1 Order by closing live1 + seed logistics, proof, escrow(held), reviews ----------
         try {
             $settlement = app(AuctionSettlementService::class);
             $order = $settlement->closeAuction($live1->id);
@@ -213,6 +217,41 @@ class DevSeeder extends Seeder
                 'media_url' => '/storage/uploads/proof-pickup-dummy.jpg',
                 'timestamp' => $now->copy()->addHours(2)->addMinutes(5),
             ]);
+
+            // seed escrow (held)
+            EscrowLedger::query()->updateOrCreate(
+                ['order_id' => $order->id, 'state' => 'held'],
+                [
+                    'amount' => (float) $order->final_price,
+                    'reference' => 'seed-payment',
+                    'note' => 'Seed escrow (held) untuk testing web',
+                ]
+            );
+
+            // ✅ set order completed supaya review valid
+            $order->status = 'completed';
+            $order->save();
+
+            // Seed review buyer -> seller
+            Review::query()->updateOrCreate(
+                ['order_id' => $order->id, 'rater_id' => $order->buyer_id],
+                [
+                    'ratee_id' => $order->seller_id,
+                    'rating' => 5,
+                    'comment' => 'Penjual responsif, ikan segar. (seed)',
+                ]
+            );
+
+            // Seed review seller -> buyer
+            Review::query()->updateOrCreate(
+                ['order_id' => $order->id, 'rater_id' => $order->seller_id],
+                [
+                    'ratee_id' => $order->buyer_id,
+                    'rating' => 5,
+                    'comment' => 'Pembeli cepat konfirmasi, transaksi lancar. (seed)',
+                ]
+            );
+
         } catch (\Throwable $e) {
             // ignore
         }

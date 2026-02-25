@@ -12,6 +12,67 @@
         }
     ],
     "paths": {
+        "/admin/analytics/summary": {
+            "get": {
+                "tags": [
+                    "Admin - Analytics"
+                ],
+                "summary": "Dashboard summary KPI (admin)",
+                "operationId": "bb95524a9a2c6734782d1735e942fafa",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/admin/analytics/time-series": {
+            "get": {
+                "tags": [
+                    "Admin - Analytics"
+                ],
+                "summary": "Orders & GMV time-series (admin)",
+                "operationId": "1938c3c90aea8b652ee79bd96c5b0ed0",
+                "parameters": [
+                    {
+                        "name": "days",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 30
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/admin/auctions": {
             "post": {
                 "tags": [
@@ -160,6 +221,106 @@
                 ]
             }
         },
+        "/admin/disputes": {
+            "get": {
+                "tags": [
+                    "Admin - Disputes"
+                ],
+                "summary": "List disputes for admin",
+                "operationId": "3879f16f71c828aeb5ed131b81fcd723",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number (Laravel paginator)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page. Max is capped by server.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/admin/reports/orders.csv": {
+            "get": {
+                "tags": [
+                    "Admin - Reports"
+                ],
+                "summary": "Export orders CSV (admin)",
+                "operationId": "aba85d11e01657a450aa0b02848468c1",
+                "parameters": [
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "2026-02-01"
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "2026-02-25"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CSV file"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/auctions/{id}/bids": {
             "get": {
                 "tags": [
@@ -174,6 +335,26 @@
                         "required": true,
                         "schema": {
                             "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number (Laravel paginator)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page. Max is capped by server.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 50
                         }
                     }
                 ],
@@ -262,6 +443,26 @@
                                 "ended"
                             ]
                         }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number (Laravel paginator)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page. Max is capped by server.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 20
+                        }
                     }
                 ],
                 "responses": {
@@ -305,6 +506,28 @@
                 ],
                 "summary": "Public list commodities (published)",
                 "operationId": "2cddc8966b30b245e5121903301dddc3",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number (Laravel paginator)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page. Max is capped by server.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 20
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK"
@@ -337,6 +560,207 @@
                         "description": "Not found"
                     }
                 }
+            }
+        },
+        "/orders/{id}/dispute": {
+            "post": {
+                "tags": [
+                    "Disputes"
+                ],
+                "summary": "Open dispute for an order (buyer/seller)",
+                "operationId": "7fc43615d679e7d090372da66ae6ca27",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "reason"
+                                ],
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "example": "Barang tidak sesuai"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Berat tidak sesuai deskripsi"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/disputes": {
+            "get": {
+                "tags": [
+                    "Disputes"
+                ],
+                "summary": "List disputes (buyer/seller sees own; admin sees all if used here)",
+                "operationId": "91ec5b0ce157f2fe596e9ad05c2d38aa",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number (Laravel paginator)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page. Max is capped by server.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/disputes/{id}": {
+            "get": {
+                "tags": [
+                    "Disputes"
+                ],
+                "summary": "Dispute detail (buyer/seller/admin)",
+                "operationId": "7eccf5436f6249e3a90c6a4de1d1f09f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/disputes/{id}/messages": {
+            "post": {
+                "tags": [
+                    "Disputes"
+                ],
+                "summary": "Add message to dispute (buyer/seller/admin)",
+                "operationId": "ef74c44db7839f1b874aa901cdd08d8a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "message": {
+                                        "type": "string",
+                                        "example": "Saya lampirkan foto barang"
+                                    },
+                                    "media_url": {
+                                        "type": "string",
+                                        "example": "/storage/uploads/proof.jpg"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/media": {
@@ -390,6 +814,28 @@
                 ],
                 "summary": "List orders (buyer sees own, seller sees own)",
                 "operationId": "325fd3d55bbe9bb39645269928fa4983",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number (Laravel paginator)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page. Max is capped by server.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 20
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK"
@@ -479,6 +925,155 @@
                         }
                     }
                 },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/orders/{id}/escrow": {
+            "get": {
+                "tags": [
+                    "Escrow"
+                ],
+                "summary": "Get escrow ledger & balance for an order",
+                "operationId": "e8915ee22da6f07089ebdd091d8c497f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/orders/{id}/escrow/hold": {
+            "post": {
+                "tags": [
+                    "Escrow"
+                ],
+                "summary": "Hold funds (simulate payment success)",
+                "operationId": "b2f89198dd1129f8467da06f6ee68db4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/orders/{id}/escrow/release": {
+            "post": {
+                "tags": [
+                    "Escrow"
+                ],
+                "summary": "Release funds to seller (admin)",
+                "operationId": "49e68b9bab1001a3235e2efd78eb9537",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/orders/{id}/escrow/refund": {
+            "post": {
+                "tags": [
+                    "Escrow"
+                ],
+                "summary": "Refund funds to buyer (admin)",
+                "operationId": "8c3e52fad0d7c542f508f0445507abf6",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK"
@@ -632,6 +1227,111 @@
                 ]
             }
         },
+        "/orders/{id}/review": {
+            "post": {
+                "tags": [
+                    "Reviews"
+                ],
+                "summary": "Submit review for an order (buyer/seller)",
+                "operationId": "48c453c0ff69a13a1126266bcc5575c6",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "rating"
+                                ],
+                                "properties": {
+                                    "rating": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "comment": {
+                                        "type": "string",
+                                        "example": "Transaksi lancar"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/my/reviews": {
+            "get": {
+                "tags": [
+                    "Reviews"
+                ],
+                "summary": "List reviews created by me",
+                "operationId": "4cd44f99d35721e6050018edfd9a472b",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number (Laravel paginator)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page. Max is capped by server.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/seller/commodities": {
             "get": {
                 "tags": [
@@ -639,6 +1339,28 @@
                 ],
                 "summary": "List commodities milik seller",
                 "operationId": "d871ca63254f3b5cd4dd9a7f60e65e0f",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number (Laravel paginator)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page. Max is capped by server.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 20
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK"
@@ -778,6 +1500,33 @@
                     }
                 ]
             }
+        },
+        "/users/{id}/rating-summary": {
+            "get": {
+                "tags": [
+                    "Reviews"
+                ],
+                "summary": "Get rating summary for a user (public)",
+                "operationId": "02c3a398f5df9235b659fe5d12874a53",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -792,8 +1541,20 @@
     },
     "tags": [
         {
+            "name": "Admin - Analytics",
+            "description": "Admin - Analytics"
+        },
+        {
             "name": "Admin - Auctions",
             "description": "Admin - Auctions"
+        },
+        {
+            "name": "Admin - Disputes",
+            "description": "Admin - Disputes"
+        },
+        {
+            "name": "Admin - Reports",
+            "description": "Admin - Reports"
         },
         {
             "name": "Bids",
@@ -808,12 +1569,24 @@
             "description": "Commodities"
         },
         {
+            "name": "Disputes",
+            "description": "Disputes"
+        },
+        {
             "name": "Media",
             "description": "Media"
         },
         {
             "name": "Orders",
             "description": "Orders"
+        },
+        {
+            "name": "Escrow",
+            "description": "Escrow"
+        },
+        {
+            "name": "Reviews",
+            "description": "Reviews"
         },
         {
             "name": "Seller - Commodities",

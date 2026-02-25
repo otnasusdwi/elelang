@@ -36,4 +36,19 @@ class Order extends Model
     {
         return $this->hasMany(\App\Models\HandoverProof::class);
     }
+
+    public function escrowLedgers()
+    {
+        return $this->hasMany(\App\Models\EscrowLedger::class);
+    }
+
+    public function dispute()
+    {
+        return $this->hasOne(\App\Models\Dispute::class);
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(\App\Models\Review::class);
+    }
 }

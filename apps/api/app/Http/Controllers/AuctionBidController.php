@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Auction\PlaceBidRequest;
 use App\Models\Auction;
 use App\Services\AuctionBidService;
+use App\Support\PaginatesApi;
 use Illuminate\Http\Request;
 
 class AuctionBidController extends Controller
@@ -27,6 +28,7 @@ class AuctionBidController extends Controller
      *   @OA\Response(response=422, description="Validation error")
      * )
      */
+    use PaginatesApi;
     public function store(PlaceBidRequest $request, Auction $auction, AuctionBidService $service)
     {
         $user = $request->user();
@@ -55,6 +57,8 @@ class AuctionBidController extends Controller
      *   tags={"Bids"},
      *   summary="List bids for an auction (public)",
      *   @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *   @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer", example=1), description="Page number (Laravel paginator)"),
+     *   @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer", example=50), description="Items per page. Max is capped by server."),
      *   @OA\Response(response=200, description="OK")
      * )
      */
